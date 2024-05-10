@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://app.autodeskforma.eu/design-system/v2/forma/styles/base.css"
+    />
+    <style>
+      div {
+        display: flex;
+        height: 100px;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+    <script type="module">
+      import { Forma } from "https://esm.sh/forma-embedded-view-sdk/auto";
+
+      const element = document.createElement("div");
+      element.innerHTML = `Welcome to ${Forma.getProjectId()}`;
+      document.body.appendChild(element);
+      window.Forma = Forma;
+    </script>
+  </head>
+  <body></body>
+</html>
