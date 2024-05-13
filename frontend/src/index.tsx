@@ -3,7 +3,6 @@ import { hydrate, prerender as ssr } from "preact-iso";
 import "./style.css";
 import { Forma } from "forma-embedded-view-sdk/auto";
 import { useState, useEffect } from "preact/hooks";
-import { useProjectInfo } from "./forma-client";
 import { useRegridParcelInfo } from "./regrid-client";
 
 Forma.auth.configure({
@@ -16,21 +15,17 @@ Forma.auth.configure({
 // doesn't seem to work properly, probably because of being in an iframe?
 
 export function App() {
-  const [buildingPaths, setBuildingPaths] = useState<string[]>([]);
-
-  const projectInfo = useProjectInfo();
-
   const parcelNumber = "055    06812";
   const parcelInfo = useRegridParcelInfo(parcelNumber);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setBuildingPaths(
-        await Forma.geometry.getPathsByCategory({ category: "building" })
-      );
-    };
-    fetchData();
-  }, []);
+  if (parcelInfo.isLoading || parcelInfo.isValidating) {
+    // Ignore this error, this is a valid WebComponent.
+    return <weave-progress></weave-progress>;
+  }
+
+  if (parcelInfo.error) {
+    return <>Encountered an error while trying to load parcel data.</>;
+  }
 
   if (parcelInfo.data) {
     const parcel = parcelInfo.data.parcels.features[0];
@@ -46,40 +41,40 @@ export function App() {
 
     return (
       <>
-        Parcel Number: <code>{parcelNumber}</code>
-        <br />
-        Parcel Zoning District:
-        <code>
-          {zoneName} ({zoningId})
-        </code>
-        <br />
-        Parcel Min Front Setback: {min_front_setback_ft}
-        <br />
-        Parcel Min Rear Setback: {min_rear_setback_ft}
-        <br />
-        Parcel Min Side Setback: {min_side_setback_ft}
+        <header>
+          <h2>Selected Parcel Info</h2>
+        </header>
+        <table>
+          <tr>
+            <th>Parcel Number</th>
+            <td>
+              <code>{parcelNumber}</code>
+            </td>
+          </tr>
+          <tr>
+            <th>Parcel Zoning District</th>
+            <td>
+              <code>
+                {zoneName} ({zoningId})
+              </code>
+            </td>
+          </tr>
+          <tr>
+            <th>Parcel Min Front Setback</th>
+            <td>{min_front_setback_ft}</td>
+          </tr>
+          <tr>
+            <th>Parcel Min Rear Setback</th>
+            <td>{min_rear_setback_ft}</td>
+          </tr>
+          <tr>
+            <th>Parcel Min Side Setback</th>
+            <td>{min_side_setback_ft}</td>
+          </tr>
+        </table>
       </>
     );
   }
-
-  return (
-    <>
-      <header>
-        <h3>Ulama Forma Hackathon Extension</h3>
-      </header>
-      <div class="section">
-        <p>Total number of buildings: {buildingPaths?.length}</p>
-        <br />
-        Project Info:
-        <br />
-        <code>{JSON.stringify(projectInfo, null, 4)}</code>
-        <br />
-        Parcel Info:
-        <br />
-        <code>{JSON.stringify(parcelInfo, null, 4)}</code>
-      </div>
-    </>
-  );
 }
 
 if (typeof window !== "undefined") {
