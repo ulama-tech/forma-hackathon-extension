@@ -6,6 +6,7 @@ import { Forma } from "forma-embedded-view-sdk/auto";
 import { useState, useEffect } from "preact/hooks";
 import { useRegridParcelInfo } from "./regrid-client";
 import { FormaElement } from "forma-embedded-view-sdk/elements/types";
+import { drawPolygon, compareElements } from "./forma-client";
 
 Forma.auth.configure({
   clientId: "VUAoxS8zovTVaRHHGmtk9yJaDbCgu2j8Ag7nTgmIYM3DBzj2",
@@ -17,22 +18,23 @@ Forma.auth.configure({
 // doesn't seem to work properly, probably because of being in an iframe?
 
 export function App() {
-  const [selection, setSelection] = useState<FormaElement[]>([]);
+  const [selection, setSelection] = useState<string[]>([]);
 
   useEffect(() => {
     let unsubscribeFn: (() => void) | null = null;
     (async function () {
-      const res = await Forma.selection.subscribe(async ({ paths }) =>
-        setSelection(
-          await Promise.all(
-            paths.map(
-              async (path) =>
-                (
-                  await Forma.elements.getByPath({ path, recursive: true })
-                ).element
-            )
-          )
-        )
+      const res = await Forma.selection.subscribe(
+        async ({ paths }) => setSelection(paths)
+        // setSelection(
+        //   await Promise.all(
+        //     paths.map(
+        //       async (path) =>
+        //         (
+        //           await Forma.elements.getByPath({ path, recursive: true })
+        //         ).element
+        //     )
+        //   )
+        // )
       );
       unsubscribeFn = res.unsubscribe;
     })();
@@ -112,18 +114,15 @@ export function App() {
           </tr>
         </table>
         <br />
-        <weave-button
-          variant="solid"
-          iconposition="left"
-          density="medium"
+        <button
+          onClick={() => {
+            drawPolygon(selection);
+          }}
           style={{ float: "right" }}
         >
           <forma-analyse-areametrics-24 slot="icon"></forma-analyse-areametrics-24>
           Generate constraints
-          <span slot="explain">
-            Generate constraints using available zoning information.
-          </span>
-        </weave-button>
+        </button>
       </>
     );
   }
