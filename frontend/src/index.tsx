@@ -5,6 +5,7 @@ import logoUrl from "./assets/ulama_logo.svg";
 import { Forma } from "forma-embedded-view-sdk/auto";
 import { useState, useEffect } from "preact/hooks";
 import { useRegridParcelInfo } from "./regrid-client";
+import { FormaElement } from "forma-embedded-view-sdk/elements/types";
 
 Forma.auth.configure({
   clientId: "VUAoxS8zovTVaRHHGmtk9yJaDbCgu2j8Ag7nTgmIYM3DBzj2",
@@ -16,13 +17,22 @@ Forma.auth.configure({
 // doesn't seem to work properly, probably because of being in an iframe?
 
 export function App() {
-  const [selection, setSelection] = useState<string[]>([]);
+  const [selection, setSelection] = useState<FormaElement[]>([]);
 
   useEffect(() => {
     let unsubscribeFn: (() => void) | null = null;
     (async function () {
-      const res = await Forma.selection.subscribe(({ paths }) =>
-        setSelection(paths)
+      const res = await Forma.selection.subscribe(async ({ paths }) =>
+        setSelection(
+          await Promise.all(
+            paths.map(
+              async (path) =>
+                (
+                  await Forma.elements.getByPath({ path, recursive: true })
+                ).element
+            )
+          )
+        )
       );
       unsubscribeFn = res.unsubscribe;
     })();
@@ -64,7 +74,7 @@ export function App() {
         <header
           style={{
             display: "flex",
-            flexDirection: "horiztonal",
+            flexDirection: "horizontal",
             alignItems: "center",
           }}
         >
