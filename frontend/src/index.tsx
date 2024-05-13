@@ -90,25 +90,29 @@ export function App() {
         <br />
         <button
           onClick={async () => {
-            const { path } = await createOffsetPolygon(selection, -3);
-            setGeneratedConstraintPath(path);
+            const res = await createOffsetPolygon(selection, -3);
+            setGeneratedConstraintPath(res.path);
           }}
-          style={{ float: "right" }}
+          style={{ display: "flex", alignItems: "center" }}
         >
           <forma-analyse-areametrics-24 slot="icon"></forma-analyse-areametrics-24>
           Generate constraints
         </button>
-        {generatedConstraintPath ? (
+        {generatedConstraintPath && (
           <button
             onClick={async () => {
-              if (!(await compareElements(generatedConstraintPath))) {
+              if (
+                !(await compareElements(generatedConstraintPath, selection))
+              ) {
                 alert("You have failed!");
               }
             }}
+            style={{ display: "flex", alignItems: "center" }}
           >
+            <forma-analyse-areametrics-24 slot="icon"></forma-analyse-areametrics-24>
             Validate against constraint
           </button>
-        ) : null}
+        )}
       </>
     );
   }

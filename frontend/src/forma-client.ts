@@ -41,8 +41,6 @@ export async function addGeojsonElement(
   properties: { [key: string]: any } = {}
 ) {
   const geoJson = createFeatureCollectionWithPolygon(geometry.points);
-  console.log("geoJson", JSON.stringify(geoJson));
-
   const { urn } = await Forma.integrateElements.createElementHierarchy({
     authcontext: Forma.getProjectId(),
     data: {
@@ -96,20 +94,17 @@ export async function createOffsetPolygon(
   }
 }
 
-export async function compareElements(constraintPath: string) {
-  var selections = await Forma.selection.getSelection();
-  console.log(constraintPath);
-  console.log(selections);
-  for (var selectionPath of selections) {
-    console.log("A", selectionPath);
+export async function compareElements(
+  constraintPath: string,
+  pathsToEvaluate: string[]
+) {
+  for (var selectionPath of pathsToEvaluate) {
     const selectionFootprint = await Forma.geometry.getFootprint({
       path: selectionPath,
     });
-    console.log("B", selectionFootprint);
     const constraintFootprint = await Forma.geometry.getFootprint({
       path: constraintPath,
     });
-    console.log("C", constraintFootprint);
     if (
       constraintFootprint?.type == "Polygon" &&
       selectionFootprint?.type == "Polygon"

@@ -15,7 +15,6 @@ export function createFeatureCollectionWithPolygon(coordinates: number[][]) {
   if (
     !areCoordinatesEqual(coordinates[0], coordinates[coordinates.length - 1])
   ) {
-    console.log("Closing polygon");
     coordinates.push(coordinates[0]);
   }
 
