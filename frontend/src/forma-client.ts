@@ -88,24 +88,31 @@ export async function drawPolygon(selectedPaths: string[]) {
     };
 
     const urn = await addGeojsonElement(polygon);
-    Forma.proposal.addElement({ urn });
+    const { path } = await Forma.proposal.addElement({ urn });
+    return path;
   }
 }
 
-export async function compareElements(const_path: string) {
+export async function compareElements(constraintPath: string) {
   var selections = await Forma.selection.getSelection();
-  for (var path in selections) {
-    const geo_footprint = await Forma.geometry.getFootprint({ path: path });
-    // const_path will be the path to the constraint jose creates
-    const const_footprint = await Forma.geometry.getFootprint({
-      path: const_path,
+  console.log(constraintPath);
+  console.log(selections);
+  for (var selectionPath of selections) {
+    console.log("A", selectionPath);
+    const selectionFootprint = await Forma.geometry.getFootprint({
+      path: selectionPath,
     });
+    console.log("B", selectionFootprint);
+    const constraintFootprint = await Forma.geometry.getFootprint({
+      path: constraintPath,
+    });
+    console.log("C", constraintFootprint);
     if (
-      const_footprint?.type == "Polygon" &&
-      geo_footprint?.type == "Polygon"
+      constraintFootprint?.type == "Polygon" &&
+      selectionFootprint?.type == "Polygon"
     ) {
-      for (var geo_coordinate in geo_footprint?.coordinates) {
-        if (!d3.geoContains(const_footprint, geo_coordinate)) {
+      for (var geo_coordinate in selectionFootprint?.coordinates) {
+        if (!d3.geoContains(constraintFootprint, geo_coordinate)) {
           return false;
         }
       }

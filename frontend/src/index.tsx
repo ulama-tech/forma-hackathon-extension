@@ -5,7 +5,6 @@ import logoUrl from "./assets/ulama_logo.svg";
 import { Forma } from "forma-embedded-view-sdk/auto";
 import { useState, useEffect } from "preact/hooks";
 import { useRegridParcelInfo } from "./regrid-client";
-import { FormaElement } from "forma-embedded-view-sdk/elements/types";
 import { drawPolygon, compareElements } from "./forma-client";
 
 Forma.auth.configure({
@@ -19,22 +18,15 @@ Forma.auth.configure({
 
 export function App() {
   const [selection, setSelection] = useState<string[]>([]);
+  const [generatedConstraintPath, setGeneratedConstraintPath] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     let unsubscribeFn: (() => void) | null = null;
     (async function () {
-      const res = await Forma.selection.subscribe(
-        async ({ paths }) => setSelection(paths)
-        // setSelection(
-        //   await Promise.all(
-        //     paths.map(
-        //       async (path) =>
-        //         (
-        //           await Forma.elements.getByPath({ path, recursive: true })
-        //         ).element
-        //     )
-        //   )
-        // )
+      const res = await Forma.selection.subscribe(async ({ paths }) =>
+        setSelection(paths)
       );
       unsubscribeFn = res.unsubscribe;
     })();
@@ -72,7 +64,6 @@ export function App() {
 
     return (
       <>
-        <code>{JSON.stringify(selection, null, 4)}</code>
         <header
           style={{
             display: "flex",
@@ -115,14 +106,26 @@ export function App() {
         </table>
         <br />
         <button
-          onClick={() => {
-            drawPolygon(selection);
+          onClick={async () => {
+            const path = await drawPolygon(selection);
+            setGeneratedConstraintPath(path);
           }}
           style={{ float: "right" }}
         >
           <forma-analyse-areametrics-24 slot="icon"></forma-analyse-areametrics-24>
           Generate constraints
         </button>
+        {generatedConstraintPath ? (
+          <button
+            onClick={async () => {
+              if (!(await compareElements(generatedConstraintPath))) {
+                alert("You have failed!");
+              }
+            }}
+          >
+            Validate against constraint
+          </button>
+        ) : null}
       </>
     );
   }
