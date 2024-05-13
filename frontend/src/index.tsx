@@ -16,6 +16,24 @@ Forma.auth.configure({
 // doesn't seem to work properly, probably because of being in an iframe?
 
 export function App() {
+  const [selection, setSelection] = useState<string[]>([]);
+
+  useEffect(() => {
+    let unsubscribeFn: (() => void) | null = null;
+    (async function () {
+      const res = await Forma.selection.subscribe(({ paths }) =>
+        setSelection(paths)
+      );
+      unsubscribeFn = res.unsubscribe;
+    })();
+
+    return () => {
+      if (unsubscribeFn) {
+        unsubscribeFn();
+      }
+    };
+  }, []);
+
   const parcelNumber = "055    06812";
   const parcelInfo = useRegridParcelInfo(parcelNumber);
 
@@ -42,6 +60,7 @@ export function App() {
 
     return (
       <>
+        <code>{JSON.stringify(selection, null, 4)}</code>
         <header
           style={{
             display: "flex",
