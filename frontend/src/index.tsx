@@ -44,8 +44,8 @@ export function App() {
     };
   }, []);
 
-  const parcelNumber = "055    06812";
-  const parcelInfo = useRegridParcelInfo(parcelNumber);
+  const parcelNumber = "096F N 01700";
+  const parcelInfo = useRegridParcelInfo("/us/tn/wilson", parcelNumber);
 
   if (parcelInfo.isLoading || parcelInfo.isValidating) {
     // Ignore this error, this is a valid WebComponent.
@@ -111,6 +111,19 @@ export function App() {
             <td>{min_side_setback_ft} ft</td>
           </tr>
         </table>
+        <br />
+        <weave-button
+          variant="solid"
+          iconposition="left"
+          density="medium"
+          style={{ float: "right" }}
+        >
+          <forma-analyse-areametrics-24 slot="icon"></forma-analyse-areametrics-24>
+          Generate constraints
+          <span slot="explain">
+            Generate constraints using available zoning information.
+          </span>
+        </weave-button>
       </>
     );
   }
