@@ -1,6 +1,7 @@
 import { hydrate, prerender as ssr } from "preact-iso";
 
 import "./style.css";
+import logoUrl from "./assets/ulama_logo.svg";
 import { Forma } from "forma-embedded-view-sdk/auto";
 import { useState, useEffect } from "preact/hooks";
 import { useRegridParcelInfo } from "./regrid-client";
@@ -41,8 +42,17 @@ export function App() {
 
     return (
       <>
-        <header>
-          <h2>Selected Parcel Info</h2>
+        <header
+          style={{
+            display: "flex",
+            flexDirection: "horiztonal",
+            alignItems: "center",
+          }}
+        >
+          <h2 style={{ flexGrow: 1 }}>Selected Parcel Info</h2>
+          <a href="https://ulama.tech/">
+            <img src={logoUrl} style={{ height: 32 }}></img>
+          </a>
         </header>
         <table>
           <tr>
@@ -52,7 +62,7 @@ export function App() {
             </td>
           </tr>
           <tr>
-            <th>Parcel Zoning District</th>
+            <th>Zoning District</th>
             <td>
               <code>
                 {zoneName} ({zoningId})
@@ -60,16 +70,16 @@ export function App() {
             </td>
           </tr>
           <tr>
-            <th>Parcel Min Front Setback</th>
-            <td>{min_front_setback_ft}</td>
+            <th>Min Front Setback</th>
+            <td>{min_front_setback_ft} ft</td>
           </tr>
           <tr>
-            <th>Parcel Min Rear Setback</th>
-            <td>{min_rear_setback_ft}</td>
+            <th>Min Rear Setback</th>
+            <td>{min_rear_setback_ft} ft</td>
           </tr>
           <tr>
-            <th>Parcel Min Side Setback</th>
-            <td>{min_side_setback_ft}</td>
+            <th>Min Side Setback</th>
+            <td>{min_side_setback_ft} ft</td>
           </tr>
         </table>
       </>
