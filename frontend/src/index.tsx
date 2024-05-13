@@ -5,7 +5,8 @@ import logoUrl from "./assets/ulama_logo.svg";
 import { Forma } from "forma-embedded-view-sdk/auto";
 import { useState, useEffect } from "preact/hooks";
 import { useRegridParcelInfo } from "./regrid-client";
-import { drawPolygon, compareElements } from "./forma-client";
+import { createOffsetPolygon, compareElements } from "./forma-client";
+import { ParcelInfoDisplay } from "./components/parcel-info-display";
 
 Forma.auth.configure({
   clientId: "VUAoxS8zovTVaRHHGmtk9yJaDbCgu2j8Ag7nTgmIYM3DBzj2",
@@ -57,9 +58,9 @@ export function App() {
       parcelInfo.data.zoning.features.find((z) => z.id == zoningId) ?? {};
     const {
       zoning: zoneName,
-      min_front_setback_ft,
-      min_rear_setback_ft,
-      min_side_setback_ft,
+      min_front_setback_ft: minFrontSetbackFt,
+      min_rear_setback_ft: minRearSetbackFt,
+      min_side_setback_ft: minSideSetbackFt,
     } = zoning.properties ?? {};
 
     return (
@@ -76,38 +77,20 @@ export function App() {
             <img src={logoUrl} style={{ height: 32 }}></img>
           </a>
         </header>
-        <table>
-          <tr>
-            <th>Parcel Number</th>
-            <td>
-              <code>{parcelNumber}</code>
-            </td>
-          </tr>
-          <tr>
-            <th>Zoning District</th>
-            <td>
-              <code>
-                {zoneName} ({zoningId})
-              </code>
-            </td>
-          </tr>
-          <tr>
-            <th>Min Front Setback</th>
-            <td>{min_front_setback_ft} ft</td>
-          </tr>
-          <tr>
-            <th>Min Rear Setback</th>
-            <td>{min_rear_setback_ft} ft</td>
-          </tr>
-          <tr>
-            <th>Min Side Setback</th>
-            <td>{min_side_setback_ft} ft</td>
-          </tr>
-        </table>
+        <ParcelInfoDisplay
+          parcelNumber={parcelNumber}
+          zoning={{
+            id: zoningId,
+            name: zoneName,
+            minFrontSetbackFt,
+            minRearSetbackFt,
+            minSideSetbackFt,
+          }}
+        />
         <br />
         <button
           onClick={async () => {
-            const path = await drawPolygon(selection);
+            const { path } = await createOffsetPolygon(selection, -3);
             setGeneratedConstraintPath(path);
           }}
           style={{ float: "right" }}

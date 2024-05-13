@@ -71,15 +71,19 @@ export type CreateIntegrateElement = {
   geometry: MeshGeometry | PointGeometry | CurveGeometry;
 };
 
-export async function drawPolygon(selectedPaths: string[]) {
-  for (let selectPath of selectedPaths) {
-    const footPrint = await Forma.geometry.getFootprint({ path: selectPath });
+export async function createOffsetPolygon(
+  polygonPathsToOffset: string[],
+  offsetAmount: number
+) {
+  for (const path of polygonPathsToOffset) {
+    const footPrint = await Forma.geometry.getFootprint({ path });
     const coordinates = footPrint?.coordinates;
-    let x = -3;
 
-    let offset = new Offset();
-
-    var newCoordinates = offset.data(coordinates).arcSegments(3).offset(x);
+    const offset = new Offset();
+    var newCoordinates = offset
+      .data(coordinates)
+      .arcSegments(3)
+      .offset(offsetAmount);
 
     const polygon: CurveGeometry = {
       type: "curve",
@@ -88,8 +92,7 @@ export async function drawPolygon(selectedPaths: string[]) {
     };
 
     const urn = await addGeojsonElement(polygon);
-    const { path } = await Forma.proposal.addElement({ urn });
-    return path;
+    return await Forma.proposal.addElement({ urn });
   }
 }
 
