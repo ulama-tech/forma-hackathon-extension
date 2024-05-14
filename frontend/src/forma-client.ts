@@ -8,6 +8,8 @@ import {
   createFeatureCollectionWithPolygon,
 } from "./geojson";
 
+const FEET_PER_METER = 3.28;
+
 export function useFormaAccessToken() {
   return useSWR("get-forma-access-token", () =>
     Forma.auth.acquireTokenOverlay()
@@ -70,7 +72,7 @@ export type CreateIntegrateElement = {
 
 export async function createOffsetPolygon(
   polygonPathsToOffset: string[],
-  offsetAmount: number
+  offsetAmountFt: number
 ) {
   for (const path of polygonPathsToOffset) {
     const footPrint = await Forma.geometry.getFootprint({ path });
@@ -80,7 +82,7 @@ export async function createOffsetPolygon(
     var [newCoordinates] = offset
       .data(coordinates)
       .arcSegments(3)
-      .offset(offsetAmount);
+      .offset(offsetAmountFt / FEET_PER_METER);
 
     const polygon: CurveGeometry = {
       type: "curve",
