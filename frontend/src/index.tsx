@@ -10,7 +10,7 @@ import { ParcelInfoDisplay } from "./components/parcel-info-display";
 
 Forma.auth.configure({
   clientId: "VUAoxS8zovTVaRHHGmtk9yJaDbCgu2j8Ag7nTgmIYM3DBzj2",
-  callbackUrl: "http://localhost:5173/auth.html",
+  callbackUrl: "https://forma-hackathon-extension.vercel.app/auth.html",
   scopes: ["data:read"],
 });
 
