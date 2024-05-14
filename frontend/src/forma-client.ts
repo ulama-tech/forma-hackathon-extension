@@ -82,7 +82,7 @@ export async function createOffsetPolygon(
     var [newCoordinates] = offset
       .data(coordinates)
       .arcSegments(3)
-      .offset(offsetAmountFt / FEET_PER_METER);
+      .offset(-offsetAmountFt / FEET_PER_METER);
 
     const polygon: CurveGeometry = {
       type: "curve",

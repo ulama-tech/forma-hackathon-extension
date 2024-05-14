@@ -61,7 +61,7 @@ export function App() {
     try {
       const res = await createOffsetPolygon(
         selection,
-        zoningInfo.minFrontSetbackFt
+        zoningInfo.minSideSetbackFt
       );
       setConstraintGenerationState({ status: "SUCCESS", value: res.path });
     } catch (error) {
