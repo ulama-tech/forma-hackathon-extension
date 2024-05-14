@@ -78,7 +78,7 @@ export async function createOffsetPolygon(
     const coordinates = footPrint?.coordinates;
 
     const offset = new Offset();
-    var newCoordinates = offset
+    var [newCoordinates] = offset
       .data(coordinates)
       .arcSegments(3)
       .offset(offsetAmount);
@@ -86,7 +86,7 @@ export async function createOffsetPolygon(
     const polygon: CurveGeometry = {
       type: "curve",
       isClosed: true,
-      points: [newCoordinates[0].reverse()],
+      points: [newCoordinates.reverse()],
     };
 
     const urn = await addGeojsonElement(polygon);
@@ -102,17 +102,28 @@ export async function compareElements(
     const selectionFootprint = await Forma.geometry.getFootprint({
       path: selectionPath,
     });
-    const constraintFootprint = await Forma.geometry.getFootprint({
+    console.log("selectionFootprint", selectionFootprint);
+
+    const constraintElement = await Forma.elements.getByPath({
       path: constraintPath,
     });
+    const [child] = constraintElement.element.children;
+    const childKey = constraintPath + "/" + child.key;
+    const constraintFootprint = await Forma.geometry.getFootprint({
+      path: childKey,
+    });
+    console.log("constraintFootprint", constraintFootprint);
+
     if (
       constraintFootprint?.type == "Polygon" &&
       selectionFootprint?.type == "Polygon"
     ) {
-      for (var geo_coordinate in selectionFootprint?.coordinates) {
-        if (!d3.geoContains(constraintFootprint, geo_coordinate)) {
+      for (const selectionFootprintCoord of selectionFootprint?.coordinates) {
+        console.log(selectionFootprintCoord, constraintElement);
+        if (!d3.geoContains(constraintFootprint, selectionFootprintCoord)) {
           return false;
         }
+        console.log("Passed!");
       }
     } else {
       throw new Error(
