@@ -5,7 +5,7 @@ import logoUrl from "./assets/ulama_logo.svg";
 import { Forma } from "forma-embedded-view-sdk/auto";
 import { useState, useEffect } from "preact/hooks";
 import { useRegridParcelInfo } from "./regrid-client";
-import { createOffsetPolygon, compareElements } from "./forma-client";
+import { createOffsetPolygon, elementsSatisfyConstraint } from "./forma-client";
 import { ParcelInfoDisplay } from "./components/parcel-info-display";
 
 Forma.auth.configure({
@@ -102,7 +102,10 @@ export function App() {
           <button
             onClick={async () => {
               if (
-                !(await compareElements(generatedConstraintPath, selection))
+                !(await elementsSatisfyConstraint(
+                  generatedConstraintPath,
+                  selection
+                ))
               ) {
                 alert("You have failed!");
               }

@@ -1,4 +1,3 @@
-import * as d3 from "d3";
 import { Forma } from "forma-embedded-view-sdk/auto";
 import useSWR from "swr";
 import Offset from "polygon-offset";
@@ -94,7 +93,41 @@ export async function createOffsetPolygon(
   }
 }
 
-export async function compareElements(
+function isPointInPolygon(
+  point: [number, number],
+  polygon: [number, number][]
+) {
+  let x = point[0],
+    y = point[1];
+  let inside = false;
+
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    let xi = polygon[i][0],
+      yi = polygon[i][1];
+    let xj = polygon[j][0],
+      yj = polygon[j][1];
+
+    let intersect =
+      yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
+}
+
+function isPolygonContained(
+  innerPolygon: [number, number][],
+  outerPolygon: [number, number][]
+) {
+  for (let point of innerPolygon) {
+    if (!isPointInPolygon(point, outerPolygon)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export async function elementsSatisfyConstraint(
   constraintPath: string,
   pathsToEvaluate: string[]
 ) {
@@ -102,8 +135,6 @@ export async function compareElements(
     const selectionFootprint = await Forma.geometry.getFootprint({
       path: selectionPath,
     });
-    console.log("selectionFootprint", selectionFootprint);
-
     const constraintElement = await Forma.elements.getByPath({
       path: constraintPath,
     });
@@ -112,19 +143,15 @@ export async function compareElements(
     const constraintFootprint = await Forma.geometry.getFootprint({
       path: childKey,
     });
-    console.log("constraintFootprint", constraintFootprint);
 
     if (
       constraintFootprint?.type == "Polygon" &&
       selectionFootprint?.type == "Polygon"
     ) {
-      for (const selectionFootprintCoord of selectionFootprint?.coordinates) {
-        console.log(selectionFootprintCoord, constraintElement);
-        if (!d3.geoContains(constraintFootprint, selectionFootprintCoord)) {
-          return false;
-        }
-        console.log("Passed!");
-      }
+      return isPolygonContained(
+        selectionFootprint.coordinates,
+        constraintFootprint.coordinates
+      );
     } else {
       throw new Error(
         "Unable to validate geometry against generated constraints."
