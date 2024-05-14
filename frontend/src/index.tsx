@@ -1,4 +1,4 @@
-import { hydrate, prerender as ssr } from "preact-iso";
+import { hydrate } from "preact-iso";
 
 import "./style.css";
 import logoUrl from "./assets/ulama_logo.svg";
@@ -205,8 +205,4 @@ export function App() {
 
 if (typeof window !== "undefined") {
   hydrate(<App />, document.getElementById("app"));
-}
-
-export async function prerender(data) {
-  return await ssr(<App {...data} />);
 }

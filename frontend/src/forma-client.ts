@@ -145,19 +145,17 @@ export async function elementsSatisfyConstraint(
     });
 
     if (
-      constraintFootprint?.type == "Polygon" &&
-      selectionFootprint?.type == "Polygon"
+      constraintFootprint?.type != "Polygon" ||
+      selectionFootprint?.type != "Polygon"
     ) {
-      return isPolygonContained(
-        selectionFootprint.coordinates,
-        constraintFootprint.coordinates
-      );
-    } else {
       throw new Error(
         "Unable to validate geometry against generated constraints."
       );
     }
 
-    return true;
+    return isPolygonContained(
+      selectionFootprint.coordinates,
+      constraintFootprint.coordinates
+    );
   }
 }
