@@ -6,7 +6,10 @@ import { Forma } from "forma-embedded-view-sdk/auto";
 import { useState, useEffect } from "preact/hooks";
 import { useRegridParcelInfo } from "./regrid-client";
 import { createOffsetPolygon, elementsSatisfyConstraint } from "./forma-client";
-import { ParcelInfoDisplay } from "./components/parcel-info-display";
+import {
+  ParcelInfoDisplay,
+  type Zoninginfo,
+} from "./components/parcel-info-display";
 
 Forma.auth.configure({
   clientId: "VUAoxS8zovTVaRHHGmtk9yJaDbCgu2j8Ag7nTgmIYM3DBzj2",
@@ -52,11 +55,14 @@ export function App() {
     };
   }, []);
 
-  const handleGenerateConstraint = async () => {
+  const handleGenerateConstraint = async (zoningInfo: Zoninginfo) => {
     setConstraintGenerationState({ status: "PROCESSING" });
 
     try {
-      const res = await createOffsetPolygon(selection, -3);
+      const res = await createOffsetPolygon(
+        selection,
+        zoningInfo.minFrontSetbackFt
+      );
       setConstraintGenerationState({ status: "SUCCESS", value: res.path });
     } catch (error) {
       setConstraintGenerationState({ status: "FAILED", error: error.message });
@@ -137,6 +143,14 @@ export function App() {
       min_side_setback_ft: minSideSetbackFt,
     } = zoning.properties ?? {};
 
+    const zoningInfo = {
+      id: zoningId,
+      name: zoneName,
+      minFrontSetbackFt,
+      minRearSetbackFt,
+      minSideSetbackFt,
+    };
+
     return (
       <>
         <header
@@ -151,20 +165,11 @@ export function App() {
             <img src={logoUrl} style={{ height: 32 }}></img>
           </a>
         </header>
-        <ParcelInfoDisplay
-          parcelNumber={parcelNumber}
-          zoning={{
-            id: zoningId,
-            name: zoneName,
-            minFrontSetbackFt,
-            minRearSetbackFt,
-            minSideSetbackFt,
-          }}
-        />
+        <ParcelInfoDisplay parcelNumber={parcelNumber} zoning={zoningInfo} />
         <br />
         {complianceState.status === "NOT_STARTED" && (
           <button
-            onClick={handleGenerateConstraint}
+            onClick={() => handleGenerateConstraint(zoningInfo)}
             style={{ display: "flex", alignItems: "center" }}
           >
             <forma-analyse-areametrics-24 slot="icon"></forma-analyse-areametrics-24>
