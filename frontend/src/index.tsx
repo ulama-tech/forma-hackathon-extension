@@ -17,11 +17,24 @@ Forma.auth.configure({
 // TODO(maxdumas): Figure out the right way to handle routing. Currently it
 // doesn't seem to work properly, probably because of being in an iframe?
 
+type State<T> =
+  | {
+      status: "NOT_STARTED";
+    }
+  | { status: "PROCESSING" }
+  | { status: "FAILED"; error: string }
+  | { status: "SUCCESS"; value: T };
+
 export function App() {
   const [selection, setSelection] = useState<string[]>([]);
-  const [generatedConstraintPath, setGeneratedConstraintPath] = useState<
-    string | null
-  >(null);
+  const [parcelNumber, setParcelNumber] = useState<string | null>(null);
+  const [constraintGenerationState, setConstraintGenerationState] = useState<
+    State<string>
+  >({ status: "NOT_STARTED" });
+
+  const [complianceState, setComplianceState] = useState<State<boolean>>({
+    status: "NOT_STARTED",
+  });
 
   useEffect(() => {
     let unsubscribeFn: (() => void) | null = null;
@@ -39,10 +52,68 @@ export function App() {
     };
   }, []);
 
-  const parcelNumber = "096F N 01700";
+  const handleGenerateConstraint = async () => {
+    setConstraintGenerationState({ status: "PROCESSING" });
+
+    try {
+      const res = await createOffsetPolygon(selection, -3);
+      setConstraintGenerationState({ status: "SUCCESS", value: res.path });
+    } catch (error) {
+      setConstraintGenerationState({ status: "FAILED", error: error.message });
+    }
+  };
+
+  const handleCheckElementSatisfiesConstraint = async () => {
+    console.log(constraintGenerationState);
+    if (constraintGenerationState.status != "SUCCESS") {
+      return;
+    }
+
+    setComplianceState({ status: "PROCESSING" });
+
+    try {
+      const complianceResult = await elementsSatisfyConstraint(
+        constraintGenerationState.value,
+        selection
+      );
+      setComplianceState({ status: "SUCCESS", value: complianceResult });
+    } catch (error) {
+      setComplianceState({ status: "FAILED", error: error.message });
+    }
+  };
+
+  useEffect(() => {
+    (async function () {
+      const { element } = await Forma.elements.getByPath({
+        path: selection[0],
+      });
+      const parcelnumb = element.properties?.parcelnumb;
+      // We only update the parcel number property when we select a new parcel
+      // with a valid parcelnumb.
+      if (parcelnumb) {
+        if (constraintGenerationState.status == "SUCCESS") {
+          // TODO(maxdumas): Delete existing constraint.
+        }
+
+        setParcelNumber(parcelnumb);
+        setConstraintGenerationState({ status: "NOT_STARTED" });
+        setComplianceState({ status: "NOT_STARTED" });
+      }
+    })();
+  }, [selection]);
+
+  if (!parcelNumber) {
+    return <>Please select a parcel with a valid parcel number.</>;
+  }
+
+  // const parcelNumber = "096F N 01700";
   const parcelInfo = useRegridParcelInfo("/us/tn/wilson", parcelNumber);
 
-  if (parcelInfo.isLoading || parcelInfo.isValidating) {
+  if (
+    parcelInfo.isLoading ||
+    constraintGenerationState.status == "PROCESSING" ||
+    complianceState.status == "PROCESSING"
+  ) {
     // Ignore this error, this is a valid WebComponent.
     return <weave-progress></weave-progress>;
   }
@@ -50,6 +121,9 @@ export function App() {
   if (parcelInfo.error) {
     return <>Encountered an error while trying to load parcel data.</>;
   }
+
+  console.log("constraint generation state", constraintGenerationState);
+  console.log("compliance state", complianceState);
 
   if (parcelInfo.data) {
     const parcel = parcelInfo.data.parcels.features[0];
@@ -88,33 +162,41 @@ export function App() {
           }}
         />
         <br />
-        <button
-          onClick={async () => {
-            const res = await createOffsetPolygon(selection, -3);
-            setGeneratedConstraintPath(res.path);
-          }}
-          style={{ display: "flex", alignItems: "center" }}
-        >
-          <forma-analyse-areametrics-24 slot="icon"></forma-analyse-areametrics-24>
-          Generate constraints
-        </button>
-        {generatedConstraintPath && (
+        {complianceState.status === "NOT_STARTED" && (
           <button
-            onClick={async () => {
-              if (
-                !(await elementsSatisfyConstraint(
-                  generatedConstraintPath,
-                  selection
-                ))
-              ) {
-                alert("You have failed!");
-              }
-            }}
+            onClick={handleGenerateConstraint}
+            style={{ display: "flex", alignItems: "center" }}
+          >
+            <forma-analyse-areametrics-24 slot="icon"></forma-analyse-areametrics-24>
+            Generate constraints
+          </button>
+        )}
+        <br />
+        {constraintGenerationState.status === "SUCCESS" && (
+          <button
+            onClick={handleCheckElementSatisfiesConstraint}
             style={{ display: "flex", alignItems: "center" }}
           >
             <forma-analyse-areametrics-24 slot="icon"></forma-analyse-areametrics-24>
             Validate against constraint
           </button>
+        )}
+        {constraintGenerationState.status === "FAILED" && (
+          <h3 style={{ color: "orange" }}>
+            Failed to generate constraint due to error:&nbsp;
+            <code>{constraintGenerationState.error}</code>
+          </h3>
+        )}
+        {complianceState.status === "SUCCESS" && complianceState.value && (
+          <h3 style={{ color: "green" }}>Selected object is compliant!</h3>
+        )}
+        {complianceState.status === "SUCCESS" && !complianceState.value && (
+          <h3 style={{ color: "red" }}>Selected object is not compliant!</h3>
+        )}
+        {complianceState.status === "FAILED" && (
+          <h3 style={{ color: "orange" }}>
+            Failed to evaluate compliance due to error {complianceState.error}
+          </h3>
         )}
       </>
     );
