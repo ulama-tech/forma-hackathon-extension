@@ -64,7 +64,6 @@ export function App() {
   };
 
   const handleCheckElementSatisfiesConstraint = async () => {
-    console.log(constraintGenerationState);
     if (constraintGenerationState.status != "SUCCESS") {
       return;
     }
@@ -103,7 +102,11 @@ export function App() {
   }, [selection]);
 
   if (!parcelNumber) {
-    return <>Please select a parcel with a valid parcel number.</>;
+    return (
+      <h3 style={{ color: "orange" }}>
+        Please select a parcel with a valid parcel number.
+      </h3>
+    );
   }
 
   // const parcelNumber = "096F N 01700";
@@ -121,9 +124,6 @@ export function App() {
   if (parcelInfo.error) {
     return <>Encountered an error while trying to load parcel data.</>;
   }
-
-  console.log("constraint generation state", constraintGenerationState);
-  console.log("compliance state", complianceState);
 
   if (parcelInfo.data) {
     const parcel = parcelInfo.data.parcels.features[0];
