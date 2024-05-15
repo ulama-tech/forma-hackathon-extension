@@ -3,7 +3,7 @@ import useSWR from "swr";
 import Offset from "polygon-offset";
 import {
   CurveGeometry,
-  MeshGeometry,
+  Point,
   PointGeometry,
   createFeatureCollectionWithPolygon,
 } from "./geojson";
@@ -65,11 +65,6 @@ export async function addGeojsonElement(
   return urn;
 }
 
-export type CreateIntegrateElement = {
-  properties: { [key: string]: any };
-  geometry: MeshGeometry | PointGeometry | CurveGeometry;
-};
-
 export async function createOffsetPolygon(
   polygonPathsToOffset: string[],
   offsetAmountFt: number
@@ -95,10 +90,7 @@ export async function createOffsetPolygon(
   }
 }
 
-function isPointInPolygon(
-  point: [number, number],
-  polygon: [number, number][]
-) {
+function isPointInPolygon(point: Point, polygon: Point[]) {
   let x = point[0],
     y = point[1];
   let inside = false;
@@ -117,10 +109,7 @@ function isPointInPolygon(
   return inside;
 }
 
-function isPolygonContained(
-  innerPolygon: [number, number][],
-  outerPolygon: [number, number][]
-) {
+function isPolygonContained(innerPolygon: Point[], outerPolygon: Point[]) {
   for (let point of innerPolygon) {
     if (!isPointInPolygon(point, outerPolygon)) {
       return false;

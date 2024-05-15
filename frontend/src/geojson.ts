@@ -1,13 +1,13 @@
-export type MeshGeometry = { vertices: number[][]; type: "mesh" };
-export type PointGeometry = { points: number[][]; type: "point" };
+export type Point = [number, number];
+export type PointGeometry = { points: Point[]; type: "point" };
 export type CurveGeometry = {
-  points: number[][];
+  points: Point[];
   isClosed: boolean;
   type: "curve";
 };
 
-export function createFeatureCollectionWithPolygon(coordinates: number[][]) {
-  function areCoordinatesEqual(coord1: number[], coord2: number[]) {
+export function createFeatureCollectionWithPolygon(coordinates: Point[]) {
+  function areCoordinatesEqual(coord1: Point, coord2: Point) {
     return coord1[0] === coord2[0] && coord1[1] === coord2[1];
   }
 
